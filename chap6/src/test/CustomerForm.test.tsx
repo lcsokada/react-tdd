@@ -1,14 +1,12 @@
 import { fireEvent, render } from '@testing-library/react'
 import CustomerForm from '../CustomerForm'
 
-import { click, element, elements, initializeReactContainer, submit } from './utils/reactTestExtensions'
+import { click, element, elements, submit } from './utils/reactTestExtensions'
 
 describe('CustomerForm', () => {
-  beforeEach(() => { 
-    initializeReactContainer()
-  })
+  const fetchSpy = jest.spyOn(global, 'fetch');
   
-  const singleArgumentSpy = <T extends Object>() => {
+  const spy = <T extends Object>() => {
     let receivedArguments: T
     return {
       fn: (args: T) => (receivedArguments = args),
@@ -82,7 +80,7 @@ describe('CustomerForm', () => {
     
     it('saves existing value when submitted', () => {
       const firstName = 'Ashley'
-      const submitSpy = singleArgumentSpy<{firstName?: string, secondName?: string}>()
+      const submitSpy = spy<{firstName?: string, secondName?: string}>()
       
       render(
         <CustomerForm 
@@ -134,7 +132,7 @@ describe('CustomerForm', () => {
     
     it('saves existing value when submitted', () => {
       const params = {firstName: 'Ashley', secondName: 'Dias'}
-      const submitSpy = singleArgumentSpy<{firstName?: string, secondName?: string}>()
+      const submitSpy = spy<{firstName?: string, secondName?: string}>()
       
       render(
         <CustomerForm 
@@ -168,6 +166,41 @@ describe('CustomerForm', () => {
       
       const button = element('input[type=submit]') as HTMLElement
       click(button)
+    })
+  })
+  
+  describe('on submit fetch data', () => {
+    it('sends request to POST /customers when submitting the form', () => {
+      render(
+        <CustomerForm 
+          onSubmit={() => {}}
+        />
+      )
+      
+      const submitButton = element('input[type=submit]')
+      click(submitButton as HTMLElement)
+      
+      expect(fetchSpy).toBeCalledWith('/customers', expect.objectContaining({
+        method: 'POST'
+      }))
+    })
+    
+    it('calls fetch with the right configuration', () => {
+      render(
+        <CustomerForm
+          onSubmit={() => {}}
+        />
+      )
+      
+      const submitButton = element('input[type=submit]')
+      click(submitButton as HTMLElement)
+      
+      expect(fetchSpy).toBeCalledWith(expect.anything(), expect.objectContaining({
+        credentials: 'same-origin',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }))
     })
   })
 })

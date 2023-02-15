@@ -16,6 +16,13 @@ const CustomerForm = ({
   
   const handleSubmit = (event: FormEvent) => {
     event.preventDefault()
+    global.fetch('/customers', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
     onSubmit && onSubmit({firstName: name, secondName})
   }
   
